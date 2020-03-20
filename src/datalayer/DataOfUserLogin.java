@@ -19,14 +19,19 @@ public class DataOfUserLogin{
      * HashMap< username, password >,
      * username是唯一的，password可以重复
      */
-    private volatile static HashMap<String, String> userLoginData = new HashMap<>();
+    private volatile static HashMap<String, String> userLoginData = null;
 
     /**
      * 后期学完IO，在这里从文件加载初始化数据库
      * @return
      */
     public synchronized static boolean initData(){
-        return true;
+        userLoginData = Load.loadUserLogin();
+        if(userLoginData != null){
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -34,7 +39,7 @@ public class DataOfUserLogin{
      * @return
      */
     public synchronized static boolean saveData(){
-        return true;
+        return Save.saveUserLogin(userLoginData);
     }
 
     /**

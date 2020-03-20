@@ -21,14 +21,19 @@ public class DataOfUserInfo {
      * HashMap< username, entry >,
      * username是唯一的，entry可以重复
      */
-    private volatile static HashMap<String, DataEntry> userInfoData = new HashMap<>();
+    private volatile static HashMap<String, DataEntry> userInfoData = null;
 
     /**
      * 后期学完IO，在这里从文件加载初始化数据库
      * @return
      */
     public synchronized static boolean initData(){
-        return true;
+        userInfoData = Load.loadUserInfo();
+        if(userInfoData != null){
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -36,7 +41,7 @@ public class DataOfUserInfo {
      * @return
      */
     public synchronized static boolean saveData(){
-        return true;
+        return Save.saveUserInfo(userInfoData);
     }
 
     /**

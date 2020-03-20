@@ -72,6 +72,7 @@ public class BankSystemApp {
                     System.out.println("输入错误");
                 }
             } catch (Exception e) {
+                e.printStackTrace();
                 System.out.println("输入错误");
             }
         }
