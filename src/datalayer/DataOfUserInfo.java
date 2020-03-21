@@ -23,11 +23,25 @@ public class DataOfUserInfo {
      */
     private volatile static HashMap<String, DataEntry> userInfoData = null;
 
+    private static final DataOfUserInfo dataOfUserInfo = new DataOfUserInfo();
+
+    private DataOfUserInfo(){
+        this.initData();
+    }
+
+    public static DataOfUserInfo getDataOfUserInfoInstance(){
+        return dataOfUserInfo;
+    }
+
     /**
      * 后期学完IO，在这里从文件加载初始化数据库
      * @return
      */
-    public synchronized static boolean initData(){
+    public synchronized boolean initData(){
+        if(userInfoData != null){
+            return false;
+        }
+
         userInfoData = Load.loadUserInfo();
         if(userInfoData != null){
             return true;
@@ -40,8 +54,15 @@ public class DataOfUserInfo {
      * 后期学完IO，在这里把数据库存入文件
      * @return
      */
-    public synchronized static boolean saveData(){
-        return Save.saveUserInfo(userInfoData);
+    public synchronized boolean saveData(){
+        if(userInfoData == null){
+            return false;
+        }
+        boolean ret = Save.saveUserInfo(userInfoData);
+        if(ret){
+            userInfoData = null;
+        }
+        return ret;
     }
 
     /**
@@ -49,7 +70,7 @@ public class DataOfUserInfo {
      * @param user
      * @param entry
      */
-    public synchronized static void add(String user, DataEntry entry){
+    public synchronized void add(String user, DataEntry entry){
         userInfoData.put(user, entry);
     }
 
@@ -60,7 +81,7 @@ public class DataOfUserInfo {
      * @param newEntry
      * @return true 修改成功
      */
-    public synchronized static boolean modify(String user, DataEntry oldEntry, DataEntry newEntry){
+    public synchronized boolean modify(String user, DataEntry oldEntry, DataEntry newEntry){
         return userInfoData.replace(user, oldEntry, newEntry);
     }
 
@@ -70,7 +91,7 @@ public class DataOfUserInfo {
      * @param entry
      * @return true 删除成功
      */
-    public synchronized static boolean remove(String user, DataEntry entry){
+    public synchronized boolean remove(String user, DataEntry entry){
         return userInfoData.remove(user, entry);
     }
 
@@ -79,7 +100,7 @@ public class DataOfUserInfo {
      * @param user
      * @return
      */
-    public static boolean hasUser(String user){
+    public boolean hasUser(String user){
         return userInfoData.containsKey(user);
     }
 
@@ -88,7 +109,7 @@ public class DataOfUserInfo {
      * @param user
      * @return DataEntry
      */
-    public static DataEntry getInfo(String user){
+    public DataEntry getInfo(String user){
         return userInfoData.get(user);
     }
 }

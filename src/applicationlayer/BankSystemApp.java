@@ -4,10 +4,19 @@ import java.util.Scanner;
 
 import businesslayer.BusinessLayer;
 
+/**
+ * 银行系统结构分析： 
+ * 1、应用层，直接对外的层，提供各种对外的功能 
+ *     登录，查询，取款，存款，转账，开户，销户，退出系统等
+ * 2、业务层，为应用层提供功能实现和接口 
+ *     提供校验账户名，密码，查询数据库，修改数据库等的接口 
+ * 3、数据层，各种数据库操作的实现层，提供操作数据库的接口方法
+ *     对数据库的查询，添加，修改，保存，加载等
+ */
 public class BankSystemApp {
 
     public void bankSystemAppStart(){
-        BusinessLayer businessLayer = BusinessLayer.getBusinessLayer();
+        BusinessLayer businessLayer = new BusinessLayer();
         businessLayer.initData();
         Scanner input = new Scanner(System.in);
         loop0:while(true){
@@ -16,7 +25,7 @@ public class BankSystemApp {
                     System.out.println("登录：1   注册：2   销户：3  退出：4");
                 }
                 else{
-                    System.out.println("查询：5   取款：6   存款：7   转账：8   退出：4");
+                    System.out.println("查询：5   取款：6   存款：7   转账：8   查询账户信息：9   退出：4");
                 }
     
                 int mode = Integer.parseInt(input.nextLine());
@@ -63,6 +72,9 @@ public class BankSystemApp {
                         case 8:
                             System.out.println(userSubBalanceToOther(input, businessLayer));
                             break;
+                        case 9:
+                            userGetAllInfo(businessLayer.getCurrentUser(), businessLayer);
+                            break;
                         default:
                             System.out.println("输入错误");
                             break;
@@ -92,22 +104,49 @@ public class BankSystemApp {
         System.out.println("请输入账户：");
         String user = input.nextLine();
         System.out.println("请输入密码：");
-        String passwd = input.nextLine();
+        String passwd0 = input.nextLine();
+        System.out.println("请再次输入密码：");
+        String passwd1 = input.nextLine();
 
-        return businessLayer.userAdd(user, passwd);
+        System.out.println("请输入完善您的个人信息：");
+        System.out.println("请输入姓名：");
+        String name = input.nextLine();
+        System.out.println("请输入身份证号：");
+        String id = input.nextLine();
+        System.out.println("请输入联系电话：");
+        String number = input.nextLine();
+
+        if(passwd0.equals(passwd1) && businessLayer.userAdd(user, passwd0)){
+            businessLayer.userLogin(user, passwd0);
+            return businessLayer.updateUserInfo("0", "RMB", name, id, number);
+        }
+        else{
+            return false;
+        }
     }
 
     private boolean userRemove(Scanner input, BusinessLayer businessLayer){
         System.out.println("请输入账户：");
         String user = input.nextLine();
         System.out.println("请输入密码：");
-        String passwd = input.nextLine();
+        String passwd0 = input.nextLine();
+        System.out.println("请再次输入密码：");
+        String passwd1 = input.nextLine();
 
-        return businessLayer.userRemove(user, passwd);
+        return passwd0.equals(passwd1) && businessLayer.userRemove(user, passwd0);
     }
 
     private boolean userLogout(String user, BusinessLayer businessLayer){
         return businessLayer.userLogout(user);
+    }
+
+    private void userGetAllInfo(String user, BusinessLayer businessLayer){
+        String[] info = businessLayer.getUserInfo(user);
+        if(info != null && info.length > 0){
+            for (String string : info) {
+                System.out.println(string);
+            }
+        }
     }
 
     private String userGetBalance(BusinessLayer businessLayer){
@@ -117,7 +156,9 @@ public class BankSystemApp {
     private boolean userSubBalance(Scanner input, BusinessLayer businessLayer){
         System.out.println("请输入取款金额：");
         String money = input.nextLine();
-        return businessLayer.userSubBalance(money);
+        System.out.println("请输入您的密码：");
+        String passwd = input.nextLine();
+        return businessLayer.confirmPasswd(passwd) && businessLayer.userSubBalance(money);
     }
 
     private boolean userAddBalance(Scanner input, BusinessLayer businessLayer){
@@ -131,7 +172,9 @@ public class BankSystemApp {
         String money = input.nextLine();
         System.out.println("请输入转入账户：");
         String other = input.nextLine();
-        return businessLayer.userSubBalanceToOther(money, other);
+        System.out.println("请输入您的密码：");
+        String passwd = input.nextLine();
+        return businessLayer.confirmPasswd(passwd) && businessLayer.userSubBalanceToOther(money, other);
     }
 
 }

@@ -9,19 +9,15 @@ import entry.DataEntry;
  */
 public class BusinessLayer{
 
-    String user = null;
-    String passwd = null;
+    private String user = null;
+    private String passwd = null;
 
-    private static final BusinessLayer businessLayer = new BusinessLayer();
-
-    private BusinessLayer(){
+    private static final DataLayer dataLayer = DataLayer.getDataLayerInstance();
+    
+    public BusinessLayer(){
 
     }
-
-    public static BusinessLayer getBusinessLayer(){
-        return businessLayer;//单例，同一时刻只能一个人操作（类似于一台取款机只能登录一个人）
-    }
-
+    
     /**
      * 获取当前操作的用户
      * @return
@@ -31,11 +27,24 @@ public class BusinessLayer{
     }
 
     /**
+     * 确认密码（敏感操作需要重新确认密码）
+     * @param passwd
+     * @return
+     */
+    public boolean confirmPasswd(String passwd){
+        if(this.passwd == null || !this.passwd.equals(passwd)){
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * 初始化数据库
      * @return
      */
     public boolean initData(){
-        return (DataLayer.initData(DataLayer.OPT_LOGIN) && DataLayer.initData(DataLayer.OPT_INFO));
+        return (dataLayer.initData(DataLayer.OPT_LOGIN) && dataLayer.initData(DataLayer.OPT_INFO));
     }
 
     /**
@@ -43,7 +52,7 @@ public class BusinessLayer{
      * @return
      */
     public boolean saveData(){
-        return (DataLayer.saveData(DataLayer.OPT_LOGIN) && DataLayer.saveData(DataLayer.OPT_INFO));
+        return (dataLayer.saveData(DataLayer.OPT_LOGIN) && dataLayer.saveData(DataLayer.OPT_INFO));
     }
 
     /**
@@ -53,7 +62,7 @@ public class BusinessLayer{
      * @return
      */
     public boolean userLogin(String user, String passwd){
-        if(this.user == null && DataLayer.confirmUser(user, passwd)){
+        if(this.user == null && dataLayer.confirmUser(user, passwd)){
             this.user = user;
             this.passwd = passwd;
             return true;
@@ -69,7 +78,7 @@ public class BusinessLayer{
      * @return
      */
     public boolean userLogout(String user){
-        if(user == this.user){
+        if(user.equals(this.user)){
             this.user = null;
             this.passwd = null;
             return true;
@@ -86,7 +95,7 @@ public class BusinessLayer{
      * @return
      */
     public boolean userAdd(String user, String passwd){
-        return DataLayer.add(user, passwd, DataLayer.OPT_LOGIN);
+        return dataLayer.add(user, passwd, DataLayer.OPT_LOGIN);
     }
 
     /**
@@ -96,9 +105,9 @@ public class BusinessLayer{
      * @return
      */
     public boolean userRemove(String user, String passwd){
-        DataEntry info = DataLayer.getInfo(user);
-        return (DataLayer.remove(user, passwd, DataLayer.OPT_LOGIN) & 
-            DataLayer.remove(user, info, DataLayer.OPT_INFO));
+        DataEntry info = dataLayer.getInfo(user);
+        return (dataLayer.remove(user, passwd, DataLayer.OPT_LOGIN) & 
+            dataLayer.remove(user, info, DataLayer.OPT_INFO));
     }
 
     /**
@@ -106,13 +115,13 @@ public class BusinessLayer{
      * @return
      */
     public String userGetBalance(){
-        if(this.user == null || !DataLayer.hasUser(this.user, DataLayer.OPT_INFO)){
+        if(this.user == null || !dataLayer.hasUser(this.user, DataLayer.OPT_INFO)){
             return null;
         }
 
-        DataEntry info = DataLayer.getInfo(this.user);
+        DataEntry info = dataLayer.getInfo(this.user);
 
-        return info.toStringArray()[0];
+        return info.toStringArray()[0] + info.toStringArray()[1];
     }
 
     /**
@@ -120,17 +129,17 @@ public class BusinessLayer{
      * @param user
      * @param money
      */
-    private void addBalance(String user, String money){
+    private boolean addBalance(String user, String money){
         int opt = DataLayer.OPT_INFO;
-        if(DataLayer.hasUser(user, opt)){
-            DataEntry oldInfo = DataLayer.getInfo(user);
+        if(dataLayer.hasUser(user, opt)){
+            DataEntry oldInfo = dataLayer.getInfo(user);
             String[] infoArray = oldInfo.toStringArray();
             infoArray[0] = "" + (Integer.parseInt(infoArray[0]) + Integer.parseInt(money));
             DataEntry newInfo = new DataEntry(infoArray);
-            DataLayer.modify(user, oldInfo, newInfo, opt);
+            return dataLayer.modify(user, oldInfo, newInfo, opt);
         }
         else{
-            DataLayer.add(user, new DataEntry(money, "RMB"), opt);
+            return dataLayer.add(user, new DataEntry(money, "RMB"), opt);
         }
     }
 
@@ -144,9 +153,7 @@ public class BusinessLayer{
             return false;
         }
 
-        addBalance(this.user, money);
-
-        return true;
+        return addBalance(this.user, money);
     }
 
     /**
@@ -155,18 +162,20 @@ public class BusinessLayer{
      * @return
      */
     public boolean userSubBalance(String money){
+        if(this.user == null){
+            return false;
+        }
         String balance = this.userGetBalance();
         if(balance == null || Integer.parseInt(balance) < Integer.parseInt(money)){
             return false;
         }
 
         int opt = DataLayer.OPT_INFO;
-        DataEntry oldInfo = DataLayer.getInfo(this.user);
+        DataEntry oldInfo = dataLayer.getInfo(this.user);
         String[] infoArray = oldInfo.toStringArray();
         infoArray[0] = "" + (Integer.parseInt(balance) - Integer.parseInt(money));
         DataEntry newInfo = new DataEntry(infoArray);
-        DataLayer.modify(this.user, oldInfo, newInfo, opt);
-        return true;
+        return dataLayer.modify(this.user, oldInfo, newInfo, opt);
     }
 
     /**
@@ -176,12 +185,52 @@ public class BusinessLayer{
      * @return
      */
     public boolean userSubBalanceToOther(String money, String other){
-        if(DataLayer.hasUser(other, DataLayer.OPT_LOGIN) && this.userSubBalance(money)){
-            addBalance(other, money);
-            return true;
+        if(this.user == null){
+            return false;
+        }
+        if(dataLayer.hasUser(other, DataLayer.OPT_LOGIN) && this.userSubBalance(money)){
+            return addBalance(other, money);
         }
 
         return false;
+    }
+
+    /**
+     * 更新用户的全部信息
+     * @param x
+     * @return
+     */
+    public boolean updateUserInfo(String ...x){
+        if(this.user == null){
+            return false;
+        }
+        int opt = DataLayer.OPT_INFO;
+        if(dataLayer.hasUser(this.user, opt)){
+            DataEntry oldInfo = dataLayer.getInfo(user);
+            DataEntry newInfo = new DataEntry(x);
+            return dataLayer.modify(this.user, oldInfo, newInfo, opt);
+        }
+        else{
+            return dataLayer.add(this.user, new DataEntry(x), opt);
+        }
+    }
+
+    /**
+     * 获取用户的全部信息
+     * @param x
+     * @return
+     */
+    public String[] getUserInfo(String user){
+        if(this.user == null || !this.user.equals(user)){
+            return null;
+        }
+        int opt = DataLayer.OPT_INFO;
+        if(dataLayer.hasUser(user, opt)){
+            return dataLayer.getInfo(user).toStringArray();
+        }
+        else{
+            return null;
+        }
     }
 
 

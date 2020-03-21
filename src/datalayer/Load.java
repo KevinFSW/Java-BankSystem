@@ -14,6 +14,12 @@ public class Load {
     private static final String userLoginPath = ".//src//datalayer//userLogin.dat";
     private static final String userInfoPath = ".//src//datalayer//userInfo.dat";
 
+    private Load(){};
+
+    /**
+     * 加载
+     * @return
+     */
     public static HashMap<String, String> loadUserLogin() {
         System.out.println("Loading userLogin data...");
         File login = new File(userLoginPath);
@@ -54,6 +60,10 @@ public class Load {
         return loginObj;
     }
 
+    /**
+     * 加载
+     * @return
+     */
     public static HashMap<String, DataEntry> loadUserInfo() {
         System.out.println("Loading userInfo data...");
         File info = new File(userInfoPath);

@@ -21,11 +21,25 @@ public class DataOfUserLogin{
      */
     private volatile static HashMap<String, String> userLoginData = null;
 
+    private static final DataOfUserLogin dataOfUserLogin = new DataOfUserLogin();
+
+    private DataOfUserLogin(){
+        this.initData();
+    }
+
+    public static DataOfUserLogin getDataOfUserLoginInstance(){
+        return dataOfUserLogin;
+    }
+
     /**
      * 后期学完IO，在这里从文件加载初始化数据库
      * @return
      */
-    public synchronized static boolean initData(){
+    public synchronized boolean initData(){
+        if(userLoginData != null){
+            return false;
+        }
+
         userLoginData = Load.loadUserLogin();
         if(userLoginData != null){
             return true;
@@ -38,8 +52,15 @@ public class DataOfUserLogin{
      * 后期学完IO，在这里把数据库存入文件
      * @return
      */
-    public synchronized static boolean saveData(){
-        return Save.saveUserLogin(userLoginData);
+    public synchronized boolean saveData(){
+        if(userLoginData == null){
+            return false;
+        }
+        boolean ret = Save.saveUserLogin(userLoginData);
+        if(ret){
+            userLoginData = null;
+        }
+        return ret;
     }
 
     /**
@@ -47,7 +68,7 @@ public class DataOfUserLogin{
      * @param user
      * @param passwd
      */
-    public synchronized static void add(String user, String passwd){
+    public synchronized void add(String user, String passwd){
         userLoginData.put(user, passwd);
     }
 
@@ -58,7 +79,7 @@ public class DataOfUserLogin{
      * @param newPasswd
      * @return true 修改成功
      */
-    public synchronized static boolean modify(String user, String oldPasswd, String newPasswd){
+    public synchronized boolean modify(String user, String oldPasswd, String newPasswd){
         return userLoginData.replace(user, oldPasswd, newPasswd);
     }
 
@@ -68,7 +89,7 @@ public class DataOfUserLogin{
      * @param passwd
      * @return true 删除成功
      */
-    public synchronized static boolean remove(String user, String passwd){
+    public synchronized boolean remove(String user, String passwd){
         return userLoginData.remove(user, passwd);
     }
 
@@ -77,7 +98,7 @@ public class DataOfUserLogin{
      * @param user
      * @return
      */
-    public static boolean hasUser(String user){
+    public boolean hasUser(String user){
         return userLoginData.containsKey(user);
     }
 
@@ -87,7 +108,7 @@ public class DataOfUserLogin{
      * @param passwd
      * @return true 数据正确
      */
-    public static boolean confirmUser(String user, String passwd){
+    public boolean confirmUser(String user, String passwd){
         return (userLoginData.get(user) != null && userLoginData.get(user).equals(passwd));
     }
 

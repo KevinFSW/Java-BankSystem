@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.util.Date;
 import java.util.HashMap;
 
 import entry.DataEntry;
@@ -15,6 +16,8 @@ public class Save {
     private static final String userLoginPath = ".//src//datalayer//userLogin.dat";
     private static final String userInfoPath = ".//src//datalayer//userInfo.dat";
 
+    private Save(){};
+
     /**
      * 文件复制
      * @param source
@@ -22,30 +25,26 @@ public class Save {
      * @param force 简单的强制复制
      * @return
      */
-    private static Boolean fileCopy(String source, String destination, boolean force) {
+    private static Boolean fileBackup(String source, String destination) {
         System.out.print(source + "--->");
         System.out.println(destination);
         File s = new File(source);
         File d = new File(destination);
         FileInputStream fi = null;
         FileOutputStream fo = null;
-        if (d.exists()) {
-            if (force) {
-                d.delete();
-            } else {
-                return false;
-            }
-        }
         try {
             fi = new FileInputStream(s);
             fo = new FileOutputStream(d, true);
+            String time = new Date().toString() + ": ";
+            byte[] timeByte = time.getBytes();
+            fo.write(timeByte);
             byte[] buffer = new byte[32];
             int rlen = fi.read(buffer);
             while (rlen != -1) {
                 fo.write(buffer, 0, rlen);
                 rlen = fi.read(buffer);
             }
-
+            fo.write("\r\n".getBytes());
             fo.flush();
 
             return true;
@@ -70,17 +69,22 @@ public class Save {
         return false;
     }
 
-    public static boolean saveUserLogin(HashMap<String, String> data) {
+    /**
+     * 保存
+     * @param data
+     * @return
+     */
+    public synchronized static boolean saveUserLogin(HashMap<String, String> data) {
         System.out.println("Saving userLogin data...");
         File login = new File(userLoginPath);
-        if (login.exists()) {
+        if (login.exists()) { //修改文件前先备份
             System.out.println("Create userLogin data backup...");
-            fileCopy(userLoginPath, userLoginPath + ".bk", true);
+            fileBackup(userLoginPath, userLoginPath + ".bk");
         }
         FileOutputStream loginFo = null;
         ObjectOutputStream loginObjOS = null;
         try {
-            loginFo = new FileOutputStream(login, true);
+            loginFo = new FileOutputStream(login);
             loginObjOS = new ObjectOutputStream(loginFo);
             loginObjOS.writeObject(data);
             System.out.println("Save success!");
@@ -104,12 +108,18 @@ public class Save {
         return false;
     }
 
-    public static boolean saveUserInfo(HashMap<String, DataEntry> data) {
+
+    /**
+     * 保存
+     * @param data
+     * @return
+     */
+    public synchronized static boolean saveUserInfo(HashMap<String, DataEntry> data) {
         System.out.println("Saving userInfo data...");
         File info = new File(userInfoPath);
-        if (info.exists()) {
+        if (info.exists()) { //修改文件前先备份
             System.out.println("Create userInfo data backup...");
-            fileCopy(userInfoPath, userInfoPath + ".bk", true);
+            fileBackup(userInfoPath, userInfoPath + ".bk");
         }
         FileOutputStream infoFo = null;
         ObjectOutputStream infoObjOS = null;
