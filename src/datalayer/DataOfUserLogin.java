@@ -1,6 +1,7 @@
 package datalayer;
 
 import java.util.HashMap;
+import java.util.Set;
 
 /**
  * 用户登录，注册需要用到的数据库和接口
@@ -110,6 +111,25 @@ public class DataOfUserLogin{
      */
     public boolean confirmUser(String user, String passwd){
         return (userLoginData.get(user) != null && userLoginData.get(user).equals(passwd));
+    }
+
+    /**
+     * 获取全部用户
+     * @return
+     */
+    public String[] getAllUser(){
+        Set<String> user = userLoginData.keySet();
+        String[] userArray = new String[user.size()];
+        return user.toArray(userArray);
+    }
+
+    /**
+     * 获取密码
+     * @param user
+     * @return String
+     */
+    public String getPasswd(String user){
+        return userLoginData.get(user);
     }
 
 }

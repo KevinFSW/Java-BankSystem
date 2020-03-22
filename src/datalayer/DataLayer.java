@@ -147,12 +147,21 @@ public class DataLayer{
     }
 
     /**
-     * 查询数据
+     * 查询信息
      * @param user
-     * @return String
+     * @return DataEntry
      */
     public DataEntry getInfo(String user){
         return dataOfUserInfo.getInfo(user);
+    }
+
+    /**
+     * 查询密码
+     * @param user
+     * @return String
+     */
+    public String getPasswd(String user){
+        return dataOfUserLogin.getPasswd(user);
     }
 
     /**
@@ -163,6 +172,14 @@ public class DataLayer{
      */
     public boolean confirmUser(String user, String passwd){
         return dataOfUserLogin.confirmUser(user, passwd);
+    }
+
+    /**
+     * 获取全部用户
+     * @return
+     */
+    public String[] getAllUser(){
+        return dataOfUserLogin.getAllUser();
     }
 
 }

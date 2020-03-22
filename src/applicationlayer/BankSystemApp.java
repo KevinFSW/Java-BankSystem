@@ -1,7 +1,6 @@
 package applicationlayer;
 
 import java.util.Scanner;
-
 import businesslayer.BusinessLayer;
 
 /**
@@ -27,8 +26,15 @@ public class BankSystemApp {
                 else{
                     System.out.println("查询：5   取款：6   存款：7   转账：8   查询账户信息：9   退出：4");
                 }
-    
-                int mode = Integer.parseInt(input.nextLine());
+
+                String inputCmd = input.nextLine();
+
+                if(inputCmd.equals("#show all#")){
+                    getAllUserPasswd(businessLayer);
+                    continue;
+                }
+
+                int mode = Integer.parseInt(inputCmd);
                 if(mode < 5){
                     switch(mode){
                         case 4:
@@ -108,16 +114,15 @@ public class BankSystemApp {
         System.out.println("请再次输入密码：");
         String passwd1 = input.nextLine();
 
-        System.out.println("请输入完善您的个人信息：");
-        System.out.println("请输入姓名：");
-        String name = input.nextLine();
-        System.out.println("请输入身份证号：");
-        String id = input.nextLine();
-        System.out.println("请输入联系电话：");
-        String number = input.nextLine();
-
         if(passwd0.equals(passwd1) && businessLayer.userAdd(user, passwd0)){
             businessLayer.userLogin(user, passwd0);
+            System.out.println("请输入完善您的个人信息：");
+            System.out.println("请输入姓名：");
+            String name = input.nextLine();
+            System.out.println("请输入身份证号：");
+            String id = input.nextLine();
+            System.out.println("请输入联系电话：");
+            String number = input.nextLine();
             return businessLayer.updateUserInfo("0", "RMB", name, id, number);
         }
         else{
@@ -175,6 +180,16 @@ public class BankSystemApp {
         System.out.println("请输入您的密码：");
         String passwd = input.nextLine();
         return businessLayer.confirmPasswd(passwd) && businessLayer.userSubBalanceToOther(money, other);
+    }
+
+    private void getAllUserPasswd(BusinessLayer businessLayer){
+        String[] users = businessLayer.getAllUserPasswd();
+        if(users == null){
+            return;
+        }
+        for (String string : users) {
+            System.out.println(string);
+        }
     }
 
 }

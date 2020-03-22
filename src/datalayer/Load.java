@@ -20,6 +20,7 @@ public class Load {
      * 加载
      * @return
      */
+    @SuppressWarnings("unchecked")
     public static HashMap<String, String> loadUserLogin() {
         System.out.println("Loading userLogin data...");
         File login = new File(userLoginPath);
@@ -64,6 +65,7 @@ public class Load {
      * 加载
      * @return
      */
+    @SuppressWarnings("unchecked")
     public static HashMap<String, DataEntry> loadUserInfo() {
         System.out.println("Loading userInfo data...");
         File info = new File(userInfoPath);

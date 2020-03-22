@@ -1,5 +1,6 @@
 package businesslayer;
 
+import java.util.ArrayList;
 import datalayer.DataLayer;
 import entry.DataEntry;
 
@@ -95,6 +96,10 @@ public class BusinessLayer{
      * @return
      */
     public boolean userAdd(String user, String passwd){
+        if(dataLayer.hasUser(user, DataLayer.OPT_LOGIN)){
+            return false;
+        }
+
         return dataLayer.add(user, passwd, DataLayer.OPT_LOGIN);
     }
 
@@ -233,5 +238,33 @@ public class BusinessLayer{
         }
     }
 
+    /**
+     * 获取全部用户
+     * @return
+     */
+    private String[] getAllUser(){
+        return dataLayer.getAllUser();
+    }
+
+    /**
+     * 获取全部用户及密码
+     * @return
+     */
+    public String[] getAllUserPasswd(){
+        int opt = DataLayer.OPT_LOGIN;
+        String[] users = getAllUser();
+        ArrayList<String> info = new ArrayList<>();
+        for (String user : users) {
+            if(dataLayer.hasUser(user, opt)){
+                StringBuilder builder = new StringBuilder();
+                builder.append(user);
+                builder.append(":");
+                builder.append(dataLayer.getPasswd(user));
+                info.add(builder.toString());
+            }
+        }
+        String[] infoArray = new String[info.size()];
+        return info.toArray(infoArray);
+    }
 
 }
